@@ -1,0 +1,153 @@
+#------------------------------------------------------------------------------------------
+# This works!!!!!
+# Process: Redis high availability with static IP addresses.
+#------------------------------------------------------------------------------------------
+# [Window 1]: docker compose --file docker-compose-IP-Addresses.yaml up -d
+# [Window 2]: docker logs sentinel-1 -f
+# [Window 1]: docker container stop redis-master
+# [Window 2]: see logs and failover unfold
+#------------------------------------------------------------------------------------------
+# Helper commands:
+# docker exec -it redis-master bash -c "redis-cli info replication"
+# docker exec -it redis-slave-1 bash -c "redis-cli info replication"
+# docker exec -it sentinel-1 bash -c "redis-cli -p 26379 sentinel get-master-addr-by-name mymaster"
+# docker container start redis-master
+# docker container stop redis-slave-1
+# docker container start redis-slave-1
+#------------------------------------------------------------------------------------------
+name: redistest
+
+services:
+  redis-master:
+    image: redis:8.2.2
+    container_name: redis-master
+    hostname: redis-master
+    volumes:
+      - redismaster:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--protected-mode",
+        "no"
+      ]
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.141
+
+
+  redis-slave-1:
+    image: redis:8.2.2
+    container_name: redis-slave-1
+    hostname: redis-slave-1
+    depends_on:
+      - redis-master
+    volumes:
+      - redisslave1:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--replicaof",
+        "172.21.0.3",
+        "6379",
+        "--protected-mode",
+        "no"
+      ]
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.142
+
+
+  redis-slave-2:
+    image: redis:8.2.2
+    container_name: redis-slave-2
+    hostname: redis-slave-2
+    depends_on:
+      - redis-master
+    volumes:
+      - redisslave2:/data
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--replicaof",
+        "172.21.0.3",
+        "6379",
+        "--protected-mode",
+        "no"
+      ]
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.143
+
+
+  sentinel-1:
+    image: redis:8.2.2
+    container_name: sentinel-1
+    hostname: sentinel-1
+    depends_on:
+      - redis-master
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel down-after-milliseconds mymaster 5000" >> /etc/sentinel.conf &&
+            echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+            redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.151
+
+
+  sentinel-2:
+    image: redis:8.2.2
+    container_name: sentinel-2
+    hostname: sentinel-2
+    depends_on:
+      - redis-master
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel down-after-milliseconds mymaster 5000" >> /etc/sentinel.conf &&
+            echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+            redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.152
+
+  sentinel-3:
+    image: redis:8.2.2
+    container_name: sentinel-3
+    hostname: sentinel-3
+    depends_on:
+      - redis-master
+    command: >
+      sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel down-after-milliseconds mymaster 5000" >> /etc/sentinel.conf &&
+            echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
+            echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
+            redis-sentinel /etc/sentinel.conf'
+    networks:
+      redis-net:
+        ipv4_address: 172.21.0.153
+
+
+volumes:
+  redismaster:
+  redisslave1:
+  redisslave2:
+
+networks:
+  redis-net:
+    ipam:
+      config:
+          # HostMin: 172.21.0.1  - HostMax: 172.21.0.254
+        - subnet: 172.21.0.0/24
+          # HostMin: 172.21.0.1  - HostMax: 172.21.0.126
+          ip_range: 172.21.0.0/25
