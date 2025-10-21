@@ -51,7 +51,7 @@ services:
         "--appendonly",
         "yes",
         "--replicaof",
-        "172.21.0.3",
+        "172.21.0.141",
         "6379",
         "--protected-mode",
         "no"
@@ -75,7 +75,7 @@ services:
         "--appendonly",
         "yes",
         "--replicaof",
-        "172.21.0.3",
+        "172.21.0.141",
         "6379",
         "--protected-mode",
         "no"
@@ -93,7 +93,7 @@ services:
       - redis-master
     command: >
       sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
-            echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.21.0.141 6379 2" >> /etc/sentinel.conf &&
             echo "sentinel down-after-milliseconds mymaster 5000" >> /etc/sentinel.conf &&
             echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
             echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
@@ -111,7 +111,7 @@ services:
       - redis-master
     command: >
       sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
-            echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.21.0.141 6379 2" >> /etc/sentinel.conf &&
             echo "sentinel down-after-milliseconds mymaster 5000" >> /etc/sentinel.conf &&
             echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
             echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
@@ -128,7 +128,7 @@ services:
       - redis-master
     command: >
       sh -c 'echo "bind 0.0.0.0" > /etc/sentinel.conf &&
-            echo "sentinel monitor mymaster 172.21.0.3 6379 2" >> /etc/sentinel.conf &&
+            echo "sentinel monitor mymaster 172.21.0.141 6379 2" >> /etc/sentinel.conf &&
             echo "sentinel down-after-milliseconds mymaster 5000" >> /etc/sentinel.conf &&
             echo "sentinel failover-timeout mymaster 10000" >> /etc/sentinel.conf &&
             echo "sentinel parallel-syncs mymaster 1" >> /etc/sentinel.conf &&
